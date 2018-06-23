@@ -16,12 +16,20 @@ import (
 )
 
 var (
+	httpOnly        = flag.Bool("http_only", false, "If True, disables HTTPS endpoint")
 	canonicalDomain = flag.String("domain", "", "canonical domain")
 	altDomains      = flag.String("alt_domains", "", "alternative domains, to redirect to the canonical domain, seperated by semicolons")
 	httpsEndpoint   = flag.String("https_endpoint", "127.0.0.1:8081", "HTTPS endpoint")
 	httpEndpoint    = flag.String("http_endpoint", "127.0.0.1:8080", "HTTP endpoint")
 	privateDir      = flag.String("private_dir", "./libellus_private/", "private data directory")
 )
+
+func canonicalProtocol() string {
+	if *httpOnly {
+		return "http"
+	}
+	return "https"
+}
 
 func parseConfig() {
 	iniflags.Parse()
@@ -91,7 +99,7 @@ func runRedirectServer(acm *autocert.Manager) {
 func makeMux() *http.ServeMux {
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		newURI := "https://" + *canonicalDomain + r.URL.String()
+		newURI := canonicalProtocol() + "://" + *canonicalDomain + r.URL.String()
 		http.Redirect(w, r, newURI, http.StatusFound)
 	})
 	mux.HandleFunc(*canonicalDomain+"/", func(w http.ResponseWriter, r *http.Request) {
@@ -100,9 +108,24 @@ func makeMux() *http.ServeMux {
 	return mux
 }
 
-func main() {
-	parseConfig()
+func httpMode() {
+	mux := makeMux()
+	srv := &http.Server{
+		Addr:         *httpEndpoint,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Second,
+		IdleTimeout:  120 * time.Second,
+		Handler:      mux,
+	}
 
+	log.Printf("Starting HTTP server")
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Fatalf("srv.ListendAndServe() failed with %s", err)
+	}
+}
+
+func httpsMode() {
 	acm := makeAutocertManager()
 	mux := makeMux()
 	srv := &http.Server{
@@ -120,5 +143,15 @@ func main() {
 	err := srv.ListenAndServeTLS("", "")
 	if err != nil {
 		log.Fatalf("srv.ListendAndServeTLS() failed with %s", err)
+	}
+}
+
+func main() {
+	parseConfig()
+
+	if *httpOnly {
+		httpMode()
+	} else {
+		httpsMode()
 	}
 }
