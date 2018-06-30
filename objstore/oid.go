@@ -3,6 +3,7 @@ package objstore
 import (
 	"encoding/hex"
 	"fmt"
+	"io"
 )
 
 type Oid struct {
@@ -17,6 +18,11 @@ func (o Oid) Equals(o2 Oid) bool {
 	return o.Bytes == o2.Bytes
 }
 
+func (o Oid) Write(w io.Writer) error {
+	_, err := w.Write(o.Bytes[:])
+	return err
+}
+
 func OidFromString(s string) (Oid, error) {
 	if len(s) != 40 {
 		return Oid{}, fmt.Errorf("bad oid length %d want 40", len(s))
@@ -27,5 +33,11 @@ func OidFromString(s string) (Oid, error) {
 	if err != nil {
 		return Oid{}, err
 	}
+	return o, err
+}
+
+func ReadOid(r io.Reader) (Oid, error) {
+	var o Oid
+	_, err := io.ReadFull(r, o.Bytes[:])
 	return o, err
 }
