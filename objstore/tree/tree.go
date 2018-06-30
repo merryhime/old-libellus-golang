@@ -1,7 +1,6 @@
 package tree
 
 import (
-	"fmt"
 	"sort"
 )
 
@@ -26,7 +25,7 @@ func (t *Tree) Find(name string) *Entry {
 
 func (t *Tree) Add(e Entry) error {
 	if t.Find(e.Name) != nil {
-		return fmt.Errorf("tree: %#v already exists", e.Name)
+		return NameAlreadyExistsError(e.Name)
 	}
 	t.Entries = append(t.Entries, e)
 	return nil
@@ -39,5 +38,5 @@ func (t *Tree) Delete(name string) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("tree: could not find %#v", name)
+	return NotFoundError(name)
 }
