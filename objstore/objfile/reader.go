@@ -13,9 +13,11 @@ type Reader struct {
 	z    io.ReadCloser
 	size uint64
 	ot   objtype.ObjType
+
+	toClose io.Closer
 }
 
-func NewReader(inner io.Reader) (*Reader, error) {
+func NewReader(inner io.Reader, closeInner bool) (*Reader, error) {
 	var z io.ReadCloser
 	var raw []byte
 	var err error
@@ -47,10 +49,15 @@ func NewReader(inner io.Reader) (*Reader, error) {
 		return nil, err
 	}
 
+	var toClose io.Closer
+	if closer, ok := inner.(io.Closer); ok && closeInner {
+		toClose = closer
+	}
 	return &Reader{
-		z:    z,
-		size: size,
-		ot:   ot,
+		z:       z,
+		size:    size,
+		ot:      ot,
+		toClose: toClose,
 	}, nil
 }
 
@@ -67,5 +74,15 @@ func (r *Reader) Read(p []byte) (n int, err error) {
 }
 
 func (r *Reader) Close() error {
-	return r.z.Close()
+	var err1, err2 error
+
+	err1 = r.z.Close()
+	if r.toClose != nil {
+		err2 = r.toClose.Close()
+	}
+
+	if err1 != nil {
+		return err1
+	}
+	return err2
 }

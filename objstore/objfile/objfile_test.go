@@ -37,7 +37,7 @@ func TestWrite(t *testing.T) {
 func readHelper(t *testing.T, input []byte) {
 	b := bytes.NewBuffer(input)
 
-	r, err := NewReader(b)
+	r, err := NewReader(b, false)
 	if err != nil {
 		t.Error(err)
 	}
