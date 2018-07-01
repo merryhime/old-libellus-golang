@@ -19,3 +19,12 @@ type ObjGetter interface {
 	Get(oid Oid) (Obj, error)
 	Exists(oid Oid) (bool, error)
 }
+
+type ObjStorer interface {
+	Store(ot objtype.ObjType, payload []byte) (Oid, error)
+}
+
+type ObjGetStorer interface {
+	ObjGetter
+	ObjStorer
+}
