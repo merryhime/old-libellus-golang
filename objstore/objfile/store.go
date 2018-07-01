@@ -95,5 +95,11 @@ func (store Store) Store(ot objtype.ObjType, payload []byte) (objid.Oid, error) 
 		return oid, err
 	}
 
-	return oid, f.Close()
+	err = f.Close()
+	if err != nil {
+		os.Remove(objpath)
+		return oid, err
+	}
+
+	return oid, nil
 }
