@@ -126,3 +126,11 @@ func (repo Repository) LookupBlobByPath(ref string, path string) (io.ReadCloser,
 	}
 	return repo.Blob(e.Oid)
 }
+
+func (repo Repository) LookupTreeByPath(ref string, path string) (tree.Tree, error) {
+	e, err := repo.LookupEntryByPath(ref, path)
+	if err != nil {
+		return tree.Tree{}, err
+	}
+	return repo.Tree(e.Oid)
+}
