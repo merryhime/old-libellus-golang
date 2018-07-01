@@ -1,13 +1,11 @@
 package objfile
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
 
 	"github.com/MerryMage/libellus/objstore/obj"
 	"github.com/MerryMage/libellus/objstore/objid"
-	"github.com/MerryMage/libellus/objstore/objtype"
 )
 
 type Store struct {
@@ -61,45 +59,31 @@ func (store Store) Exists(oid objid.Oid) (bool, error) {
 	return true, nil
 }
 
-func (store Store) Store(ot objtype.ObjType, payload []byte) (objid.Oid, error) {
-	var b bytes.Buffer
-
-	w, err := NewWriter(&b, ot, uint64(len(payload)))
-	if err != nil {
-		return objid.Oid{}, err
-	}
-
-	_, err = w.Write(payload)
-	if err != nil {
-		return objid.Oid{}, err
-	}
-	w.Close()
-
-	oid := w.Oid()
+func (store Store) Store(oid objid.Oid, payload []byte) error {
 	objpath := store.pathToObjectFile(oid)
 
-	err = os.MkdirAll(store.dirContainingObjectFile(oid), 0777)
+	err := os.MkdirAll(store.dirContainingObjectFile(oid), 0777)
 	if err != nil {
-		return oid, err
+		return err
 	}
 
 	f, err := os.Create(objpath)
 	if err != nil {
-		return oid, err
+		return err
 	}
 
-	_, err = f.Write(b.Bytes())
+	_, err = f.Write(payload)
 	if err != nil {
 		f.Close()
 		os.Remove(objpath)
-		return oid, err
+		return err
 	}
 
 	err = f.Close()
 	if err != nil {
 		os.Remove(objpath)
-		return oid, err
+		return err
 	}
 
-	return oid, nil
+	return nil
 }

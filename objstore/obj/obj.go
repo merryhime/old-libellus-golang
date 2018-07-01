@@ -24,7 +24,7 @@ type ObjGetter interface {
 }
 
 type ObjStorer interface {
-	Store(ot objtype.ObjType, payload []byte) (objid.Oid, error)
+	Store(oid objid.Oid, payload []byte) error
 }
 
 type ObjGetStorer interface {
