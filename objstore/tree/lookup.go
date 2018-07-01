@@ -7,7 +7,7 @@ import (
 	"github.com/MerryMage/libellus/objstore/objtype"
 )
 
-func Lookup(store objstore.ObjStore, oid objstore.Oid, path string) (*Entry, error) {
+func Lookup(store objstore.ObjGetter, oid objstore.Oid, path string) (*Entry, error) {
 	obj, err := store.Get(oid)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func Lookup(store objstore.ObjStore, oid objstore.Oid, path string) (*Entry, err
 	return LookupInTree(store, t, path)
 }
 
-func LookupInTree(store objstore.ObjStore, t Tree, path string) (*Entry, error) {
+func LookupInTree(store objstore.ObjGetter, t Tree, path string) (*Entry, error) {
 	splitpath := strings.SplitN(path, "/", 2)
 
 	e := t.Find(splitpath[0])

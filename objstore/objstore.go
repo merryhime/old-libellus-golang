@@ -15,7 +15,7 @@ type Obj interface {
 	ObjType() objtype.ObjType
 }
 
-type ObjStore interface {
+type ObjGetter interface {
 	Get(oid Oid) (Obj, error)
 	Exists(oid Oid) (bool, error)
 }
