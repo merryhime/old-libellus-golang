@@ -4,7 +4,7 @@ import (
 	"crypto/sha1"
 	"hash"
 
-	"github.com/MerryMage/libellus/objstore"
+	"github.com/MerryMage/libellus/objstore/objid"
 )
 
 type Hasher struct {
@@ -15,7 +15,7 @@ func NewHasher() Hasher {
 	return Hasher{sha1.New()}
 }
 
-func (h Hasher) Oid() (oid objstore.Oid) {
+func (h Hasher) Oid() (oid objid.Oid) {
 	copy(oid.Bytes[:], h.Hash.Sum(nil))
 	return oid
 }

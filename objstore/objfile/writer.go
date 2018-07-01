@@ -6,8 +6,8 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/MerryMage/libellus/objstore"
 	"github.com/MerryMage/libellus/objstore/ioutil"
+	"github.com/MerryMage/libellus/objstore/objid"
 	"github.com/MerryMage/libellus/objstore/objtype"
 )
 
@@ -74,7 +74,7 @@ func (w *Writer) Write(p []byte) (n int, err error) {
 	return
 }
 
-func (w *Writer) Oid() objstore.Oid {
+func (w *Writer) Oid() objid.Oid {
 	return w.h.Oid()
 }
 

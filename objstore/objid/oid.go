@@ -1,4 +1,4 @@
-package objstore
+package objid
 
 import (
 	"encoding/hex"
@@ -23,7 +23,7 @@ func (o Oid) Write(w io.Writer) error {
 	return err
 }
 
-func OidFromString(s string) (Oid, error) {
+func FromString(s string) (Oid, error) {
 	if len(s) != 40 {
 		return Oid{}, fmt.Errorf("bad oid length %d want 40", len(s))
 	}
@@ -36,7 +36,7 @@ func OidFromString(s string) (Oid, error) {
 	return o, err
 }
 
-func ReadOid(r io.Reader) (Oid, error) {
+func Read(r io.Reader) (Oid, error) {
 	var o Oid
 	_, err := io.ReadFull(r, o.Bytes[:])
 	return o, err

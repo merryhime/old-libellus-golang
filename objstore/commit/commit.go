@@ -1,13 +1,13 @@
 package commit
 
 import (
-	"github.com/MerryMage/libellus/objstore"
+	"github.com/MerryMage/libellus/objstore/objid"
 )
 
 type Commit struct {
 	Author    Signature
 	Committer Signature
 	Message   string
-	Tree      objstore.Oid
-	Parents   []objstore.Oid
+	Tree      objid.Oid
+	Parents   []objid.Oid
 }

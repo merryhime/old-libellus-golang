@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/MerryMage/libellus/objstore"
 	"github.com/MerryMage/libellus/objstore/ioutil"
+	"github.com/MerryMage/libellus/objstore/objid"
 )
 
 func Read(r io.Reader) (Commit, error) {
@@ -30,13 +30,13 @@ func Read(r io.Reader) (Commit, error) {
 		parts := bytes.SplitN(line, []byte{' '}, 2)
 		switch string(parts[0]) {
 		case "tree":
-			tree, err := objstore.OidFromString(string(parts[1]))
+			tree, err := objid.FromString(string(parts[1]))
 			if err != nil {
 				return commit, err
 			}
 			commit.Tree = tree
 		case "parent":
-			parent, err := objstore.OidFromString(string(parts[1]))
+			parent, err := objid.FromString(string(parts[1]))
 			if err != nil {
 				return commit, err
 			}

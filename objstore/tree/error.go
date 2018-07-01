@@ -3,7 +3,7 @@ package tree
 import (
 	"fmt"
 
-	"github.com/MerryMage/libellus/objstore"
+	"github.com/MerryMage/libellus/objstore/objid"
 )
 
 type NameAlreadyExistsError string
@@ -18,7 +18,7 @@ func (e NotFoundError) Error() string {
 	return fmt.Sprintf("tree: could not find %#v", e)
 }
 
-type NotATreeError objstore.Oid
+type NotATreeError objid.Oid
 
 func (e NotATreeError) Error() string {
 	return fmt.Sprintf("tree: oid %s not a tree", e)

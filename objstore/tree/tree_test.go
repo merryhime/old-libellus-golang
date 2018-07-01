@@ -6,12 +6,12 @@ import (
 	"bytes"
 	"encoding/hex"
 
-	"github.com/MerryMage/libellus/objstore"
 	"github.com/MerryMage/libellus/objstore/filemode"
+	"github.com/MerryMage/libellus/objstore/objid"
 )
 
-func oid(s string) objstore.Oid {
-	oid, err := objstore.OidFromString(s)
+func oid(s string) objid.Oid {
+	oid, err := objid.FromString(s)
 	if err != nil {
 		panic("oid failed")
 	}

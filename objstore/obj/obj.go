@@ -1,12 +1,15 @@
-package objstore
+package obj
 
 import (
 	"io"
 
+	"github.com/MerryMage/libellus/objstore/objid"
 	"github.com/MerryMage/libellus/objstore/objtype"
 )
 
-type ObjectNotFoundError struct{}
+type ObjectNotFoundError interface {
+	objectNotFoundError()
+}
 
 type Obj interface {
 	io.ReadCloser
@@ -16,12 +19,12 @@ type Obj interface {
 }
 
 type ObjGetter interface {
-	Get(oid Oid) (Obj, error)
-	Exists(oid Oid) (bool, error)
+	Get(oid objid.Oid) (Obj, error)
+	Exists(oid objid.Oid) (bool, error)
 }
 
 type ObjStorer interface {
-	Store(ot objtype.ObjType, payload []byte) (Oid, error)
+	Store(ot objtype.ObjType, payload []byte) (objid.Oid, error)
 }
 
 type ObjGetStorer interface {

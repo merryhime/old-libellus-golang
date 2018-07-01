@@ -5,7 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/MerryMage/libellus/objstore"
+	"github.com/MerryMage/libellus/objstore/obj"
+	"github.com/MerryMage/libellus/objstore/objid"
 	"github.com/MerryMage/libellus/objstore/objtype"
 )
 
@@ -19,17 +20,17 @@ func NewStore(path string) Store {
 	}
 }
 
-func (store Store) pathToObjectFile(oid objstore.Oid) string {
+func (store Store) pathToObjectFile(oid objid.Oid) string {
 	oidstr := oid.String()
 	return filepath.Join(store.path, "objects", oidstr[:2], oidstr[2:])
 }
 
-func (store Store) dirContainingObjectFile(oid objstore.Oid) string {
+func (store Store) dirContainingObjectFile(oid objid.Oid) string {
 	oidstr := oid.String()
 	return filepath.Join(store.path, "objects", oidstr[:2])
 }
 
-func (store Store) Get(oid objstore.Oid) (objstore.Obj, error) {
+func (store Store) Get(oid objid.Oid) (obj.Obj, error) {
 	objpath := store.pathToObjectFile(oid)
 
 	_, err := os.Stat(objpath)
@@ -47,7 +48,7 @@ func (store Store) Get(oid objstore.Oid) (objstore.Obj, error) {
 	return NewReader(f, true)
 }
 
-func (store Store) Exists(oid objstore.Oid) (bool, error) {
+func (store Store) Exists(oid objid.Oid) (bool, error) {
 	objpath := store.pathToObjectFile(oid)
 
 	_, err := os.Stat(objpath)
@@ -60,17 +61,17 @@ func (store Store) Exists(oid objstore.Oid) (bool, error) {
 	return true, nil
 }
 
-func (store Store) Store(ot objtype.ObjType, payload []byte) (objstore.Oid, error) {
+func (store Store) Store(ot objtype.ObjType, payload []byte) (objid.Oid, error) {
 	var b bytes.Buffer
 
 	w, err := NewWriter(&b, ot, uint64(len(payload)))
 	if err != nil {
-		return objstore.Oid{}, err
+		return objid.Oid{}, err
 	}
 
 	_, err = w.Write(payload)
 	if err != nil {
-		return objstore.Oid{}, err
+		return objid.Oid{}, err
 	}
 	w.Close()
 

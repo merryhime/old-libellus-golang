@@ -6,7 +6,7 @@ import (
 
 	"encoding/hex"
 
-	"github.com/MerryMage/libellus/objstore"
+	"github.com/MerryMage/libellus/objstore/objid"
 )
 
 var testCommit []byte = func() []byte {
@@ -14,8 +14,8 @@ var testCommit []byte = func() []byte {
 	return ret
 }()
 
-func oid(s string) objstore.Oid {
-	oid, err := objstore.OidFromString(s)
+func oid(s string) objid.Oid {
+	oid, err := objid.FromString(s)
 	if err != nil {
 		panic("oid failed")
 	}
@@ -64,7 +64,7 @@ func TestWrite(t *testing.T) {
 			Timezone:  "+0100",
 		},
 		Tree: oid("a89cfbe149655be48512d8e748a0b0b779e85e69"),
-		Parents: []objstore.Oid{
+		Parents: []objid.Oid{
 			oid("86f7c4cb3308289c79ba50076a9160d99755ad66"),
 		},
 		Message: "A64: Implement FCVTMU (scalar)\n",

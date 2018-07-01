@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"io/ioutil"
 
-	"github.com/MerryMage/libellus/objstore"
+	"github.com/MerryMage/libellus/objstore/objid"
 	"github.com/MerryMage/libellus/objstore/objtype"
 )
 
@@ -26,7 +26,7 @@ func TestWrite(t *testing.T) {
 
 	w.Close()
 
-	expectedOid, _ := objstore.OidFromString("0527e6bd2d76b45e2933183f1b506c7ac49f5872")
+	expectedOid, _ := objid.FromString("0527e6bd2d76b45e2933183f1b506c7ac49f5872")
 	if !w.Oid().Equals(expectedOid) {
 		t.Errorf("w.Oid() = %q", w.Oid())
 	}

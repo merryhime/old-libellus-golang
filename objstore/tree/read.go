@@ -3,9 +3,9 @@ package tree
 import (
 	"io"
 
-	"github.com/MerryMage/libellus/objstore"
 	"github.com/MerryMage/libellus/objstore/filemode"
 	"github.com/MerryMage/libellus/objstore/ioutil"
+	"github.com/MerryMage/libellus/objstore/objid"
 )
 
 func Read(r io.Reader) (Tree, error) {
@@ -31,7 +31,7 @@ func Read(r io.Reader) (Tree, error) {
 		}
 		name := string(raw)
 
-		oid, err := objstore.ReadOid(r)
+		oid, err := objid.Read(r)
 		if err != nil {
 			return ret, err
 		}

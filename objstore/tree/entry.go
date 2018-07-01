@@ -1,14 +1,14 @@
 package tree
 
 import (
-	"github.com/MerryMage/libellus/objstore"
 	"github.com/MerryMage/libellus/objstore/filemode"
+	"github.com/MerryMage/libellus/objstore/objid"
 )
 
 type Entry struct {
 	Name string
 	Mode filemode.FileMode
-	Oid  objstore.Oid
+	Oid  objid.Oid
 }
 
 func (e Entry) sortName() string {
