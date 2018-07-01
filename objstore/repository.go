@@ -41,18 +41,27 @@ func NewRepository(path string) Repository {
 }
 
 func (repo Repository) Get(oid objid.Oid) (obj.Obj, error) {
+	repo.lock.RLock()
+	defer repo.lock.RUnlock()
 	return repo.objStore.Get(oid)
 }
 
 func (repo Repository) Exists(oid objid.Oid) (bool, error) {
+	repo.lock.RLock()
+	defer repo.lock.RUnlock()
 	return repo.objStore.Exists(oid)
 }
 
 func (repo Repository) Store(ot objtype.ObjType, payload []byte) (objid.Oid, error) {
+	repo.lock.Lock()
+	defer repo.lock.Unlock()
 	return repo.objStore.Store(ot, payload)
 }
 
 func (repo Repository) RefOid(ref string) (objid.Oid, error) {
+	repo.lock.RLock()
+	defer repo.lock.RUnlock()
+
 	refpath := filepath.Join(repo.path, "refs", "heads", ref)
 
 	rawoid, err := ioutil.ReadFile(refpath)
