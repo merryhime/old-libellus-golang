@@ -1,6 +1,7 @@
 package ioutil
 
 import (
+	"bytes"
 	"io"
 )
 
@@ -19,4 +20,10 @@ func ReadUntil(r io.Reader, delim byte) ([]byte, error) {
 			return ret, err
 		}
 	}
+}
+
+func ReadAll(r io.Reader) ([]byte, error) {
+	var b bytes.Buffer
+	_, err := b.ReadFrom(r)
+	return b.Bytes(), err
 }
