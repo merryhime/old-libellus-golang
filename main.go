@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"flag"
-	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -13,6 +12,11 @@ import (
 
 	"github.com/vharitonsky/iniflags"
 	"golang.org/x/crypto/acme/autocert"
+
+	"github.com/MerryMage/libellus/auth"
+	"github.com/MerryMage/libellus/common"
+	"github.com/MerryMage/libellus/objstore"
+	"github.com/MerryMage/libellus/wiki"
 )
 
 var (
@@ -22,7 +26,11 @@ var (
 	httpsEndpoint   = flag.String("https_endpoint", "127.0.0.1:8081", "HTTPS endpoint")
 	httpEndpoint    = flag.String("http_endpoint", "127.0.0.1:8080", "HTTP endpoint")
 	privateDir      = flag.String("private_dir", "./libellus_private/", "private data directory")
+	objStoreDir     = flag.String("objstore_dir", "./libellus_objstore/", "object store directory")
 )
+
+var app *wiki.Wiki
+var config *common.Config
 
 func canonicalProtocol() string {
 	if *httpOnly {
@@ -102,9 +110,8 @@ func makeMux() *http.ServeMux {
 		newURI := canonicalProtocol() + "://" + *canonicalDomain + r.URL.String()
 		http.Redirect(w, r, newURI, http.StatusFound)
 	})
-	mux.HandleFunc(*canonicalDomain+"/", func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "It works!")
-	})
+	mux.Handle(*canonicalDomain+"/", app)
+	mux.Handle(*canonicalDomain+"/_auth/", config.Authentication)
 	return mux
 }
 
@@ -148,6 +155,16 @@ func httpsMode() {
 
 func main() {
 	parseConfig()
+
+	config = &common.Config{
+		HttpOnly:        *httpOnly,
+		CanonicalDomain: *canonicalDomain,
+		PrivateWikiDir:  *privateDir + "/wiki/",
+		PrivateSrsDir:   *privateDir + "/srs/",
+		Repo:            objstore.NewRepository(*objStoreDir),
+		Authentication:  auth.NewAuth(*privateDir+"/auth/account.json", *httpOnly),
+	}
+	app = wiki.NewWiki(config)
 
 	if *httpOnly {
 		httpMode()
