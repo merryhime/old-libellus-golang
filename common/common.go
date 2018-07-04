@@ -1,6 +1,8 @@
 package common
 
 import (
+	"github.com/gobuffalo/packr"
+
 	"github.com/MerryMage/libellus/auth"
 	"github.com/MerryMage/libellus/objstore"
 )
@@ -12,4 +14,5 @@ type Config struct {
 	PrivateSrsDir   string
 	Repo            *objstore.Repository
 	Authentication  *auth.Auth
+	StaticData      packr.Box
 }

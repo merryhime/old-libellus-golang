@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gobuffalo/packr"
 	"github.com/vharitonsky/iniflags"
 	"golang.org/x/crypto/acme/autocert"
 
@@ -112,6 +113,7 @@ func makeMux() *http.ServeMux {
 	})
 	mux.Handle(*canonicalDomain+"/", app)
 	mux.Handle(*canonicalDomain+"/_auth/", config.Authentication)
+	mux.Handle(*canonicalDomain+"/_static/", http.FileServer(config.StaticData))
 	return mux
 }
 
@@ -163,6 +165,7 @@ func main() {
 		PrivateSrsDir:   *privateDir + "/srs/",
 		Repo:            objstore.NewRepository(*objStoreDir),
 		Authentication:  auth.NewAuth(*privateDir+"/auth/account.json", *httpOnly),
+		StaticData:      packr.NewBox("./static"),
 	}
 	app = wiki.NewWiki(config)
 

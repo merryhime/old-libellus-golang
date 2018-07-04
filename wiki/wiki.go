@@ -4,27 +4,22 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/gobuffalo/packr"
-
 	"github.com/MerryMage/libellus/common"
 )
 
 type Wiki struct {
-	box    packr.Box
 	config *common.Config
 }
 
 func NewWiki(config *common.Config) *Wiki {
 	return &Wiki{
-		box:    packr.NewBox("./templates"),
 		config: config,
 	}
 }
 
 func (wiki *Wiki) invalidPathResponse(w http.ResponseWriter, r *http.Request) {
-	html := wiki.box.Bytes("invalid_path.html")
 	w.WriteHeader(404)
-	w.Write([]byte(html))
+	w.Write([]byte("404"))
 }
 
 func validatePath(p *string) bool {
