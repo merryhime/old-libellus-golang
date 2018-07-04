@@ -178,6 +178,21 @@ func (repo *Repository) Blob(oid objid.Oid) (io.ReadCloser, error) {
 	return o, nil
 }
 
+func (repo *Repository) ReadBlob(oid objid.Oid) ([]byte, error) {
+	r, err := repo.Blob(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := ioutil.ReadAll(r)
+	r.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func (repo *Repository) LookupBlobByPath(ref string, path string) (io.ReadCloser, error) {
 	e, err := repo.LookupEntryByPath(ref, path)
 	if err != nil {
@@ -192,4 +207,12 @@ func (repo *Repository) LookupTreeByPath(ref string, path string) (tree.Tree, er
 		return tree.Tree{}, err
 	}
 	return repo.Tree(e.Oid)
+}
+
+func (repo *Repository) ReadBlobFromTree(t tree.Tree, path string) ([]byte, error) {
+	e, err := tree.LookupInTree(repo, t, path)
+	if err != nil {
+		return nil, err
+	}
+	return repo.ReadBlob(e.Oid)
 }

@@ -3,7 +3,6 @@ package wikidata
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"log"
 
 	"github.com/MerryMage/libellus/objstore"
@@ -66,32 +65,19 @@ func (wd *WikiData) addError(path string, err error) {
 func (wd *WikiData) parsePageInfo(currentPath string, currentPage *Page, pageTreeEntry *tree.Entry) {
 	pageTree, err := wd.repo.Tree(pageTreeEntry.Oid)
 	if err != nil {
-		wd.addError(currentPath, errors.New("wikidata/parsePageInfo: could look open _page"))
+		wd.addError(currentPath+"/_page", err)
 		return
 	}
 
-	infoEntry := pageTree.Find("_info")
-	if infoEntry == nil {
-		wd.addError(currentPath, errors.New("wikidata/parsePageInfo: could not find _info"))
-		return
-	}
-
-	infoBlob, err := wd.repo.Blob(infoEntry.Oid)
+	infoRaw, err := wd.repo.ReadBlobFromTree(pageTree, "_info")
 	if err != nil {
-		wd.addError(currentPath, errors.New("wikidata/parsePageInfo: could not open _info"))
-		return
-	}
-
-	infoRaw, err := ioutil.ReadAll(infoBlob)
-	infoBlob.Close()
-	if err != nil {
-		wd.addError(currentPath, errors.New("wikidata/parsePageInfo: could not read _info"))
+		wd.addError(currentPath+"/_page/_info", err)
 		return
 	}
 
 	err = json.Unmarshal(infoRaw, &currentPage.PageInfo)
 	if err != nil {
-		wd.addError(currentPath, errors.New("wikidata/parsePageInfo: could not parse _info"))
+		wd.addError(currentPath+"/_page/_info", err)
 		return
 	}
 
