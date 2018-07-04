@@ -216,3 +216,11 @@ func (repo *Repository) ReadBlobFromTree(t tree.Tree, path string) ([]byte, erro
 	}
 	return repo.ReadBlob(e.Oid)
 }
+
+func (repo *Repository) ReadBlobFromTreeOid(treeoid objid.Oid, path string) ([]byte, error) {
+	e, err := tree.Lookup(repo, treeoid, path)
+	if err != nil {
+		return nil, err
+	}
+	return repo.ReadBlob(e.Oid)
+}

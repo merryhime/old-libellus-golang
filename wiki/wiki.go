@@ -1,20 +1,25 @@
 package wiki
 
 import (
-	"fmt"
+	"html/template"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/MerryMage/libellus/common"
+	"github.com/MerryMage/libellus/wikidata"
 )
 
 type Wiki struct {
 	config *common.Config
+
+	pageTemplate *template.Template
 }
 
 func NewWiki(config *common.Config) *Wiki {
 	return &Wiki{
-		config: config,
+		config:       config,
+		pageTemplate: template.Must(template.New("pageTemplate").Parse(config.StaticData.String("wiki/page_template.html"))),
 	}
 }
 
@@ -39,6 +44,40 @@ func validatePath(p *string) bool {
 	return true
 }
 
+type RenderedPath []string
+
+func (rp RenderedPath) IsLast(i int) bool {
+	return i == len(rp)-1
+}
+
+func (rp RenderedPath) Partial(i int) string {
+	return "/" + strings.Join(rp[:i+1], "/")
+}
+
+func (rp RenderedPath) NotRoot() bool {
+	return !(len(rp) == 1 && rp[0] == "")
+}
+
+type RenderedSubpage struct {
+	Path  string
+	Title string
+}
+
+type RenderedKnowledge struct {
+	Identifier   string
+	RenderedHTML template.HTML
+	CardCount    int
+}
+
+type RenderedPage struct {
+	Authorized bool
+
+	Title      string
+	Path       RenderedPath
+	Subpages   []RenderedSubpage
+	Knowledges []RenderedKnowledge
+}
+
 func (wiki *Wiki) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 	if !validatePath(&path) {
@@ -52,7 +91,48 @@ func (wiki *Wiki) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("we're ok: " + path + "\n"))
 	page, ok := wiki.config.WikiData.LookupPage(path)
-	fmt.Fprintf(w, "%#v\n\n%#v\n", ok, page)
+	if !ok {
+		w.Write([]byte("!ok"))
+		return
+	}
+
+	rendered := RenderedPage{
+		Authorized: wiki.config.Authentication.IsAuthenticated(r),
+		Title:      page.Title,
+		Path:       RenderedPath(strings.Split(path[1:], "/")),
+	}
+
+	for _, v := range page.Children {
+		rendered.Subpages = append(rendered.Subpages, RenderedSubpage{
+			Path:  v,
+			Title: v,
+		})
+	}
+
+	for _, v := range page.ActualKnowledges {
+		k := wiki.renderKnowledge(wiki.config.WikiData.LookupKnowledge(v))
+		rendered.Knowledges = append(rendered.Knowledges, k)
+	}
+
+	wiki.pageTemplate.Execute(w, rendered)
+}
+
+func (wiki *Wiki) renderKnowledge(k wikidata.Knowledge) RenderedKnowledge {
+	var rendered RenderedKnowledge
+	rendered.CardCount = len(k.GetCards())
+
+	switch k := k.(type) {
+	case wikidata.ErrorKnowledge:
+		rendered.Identifier = string(k.Identifier)
+		rendered.RenderedHTML = template.HTML(k.Message)
+	case wikidata.MarkdownKnowledge:
+		rendered.Identifier = string(k.Identifier)
+		rendered.RenderedHTML = template.HTML(k.Markdown)
+	default:
+		rendered.Identifier = "invalid"
+		rendered.RenderedHTML = template.HTML("no idea what's going on")
+	}
+
+	return rendered
 }

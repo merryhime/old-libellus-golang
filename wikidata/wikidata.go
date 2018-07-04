@@ -162,3 +162,12 @@ func (wd *WikiData) LookupKnowledgeMeta(kid KnowledgeId) (KnowledgeMeta, bool) {
 	k, ok := wd.knowledges[kid]
 	return k, ok
 }
+
+func (wd *WikiData) LookupKnowledge(kid KnowledgeId) Knowledge {
+	k, ok := wd.knowledges[kid]
+	if !ok {
+		return NewErrorKnowledge("kid \"" + string(kid) + "\" not found")
+	}
+
+	return wd.parseKnowledge(k)
+}
