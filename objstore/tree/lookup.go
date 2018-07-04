@@ -31,7 +31,7 @@ func LookupInTree(store obj.ObjGetter, t Tree, path string) (*Entry, error) {
 
 	e := t.Find(splitpath[0])
 	if e == nil {
-		return nil, nil
+		return nil, NotFoundError(path)
 	}
 
 	if len(splitpath) == 1 {

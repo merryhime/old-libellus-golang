@@ -5,6 +5,7 @@ import (
 
 	"github.com/MerryMage/libellus/auth"
 	"github.com/MerryMage/libellus/objstore"
+	"github.com/MerryMage/libellus/wikidata"
 )
 
 type Config struct {
@@ -15,4 +16,5 @@ type Config struct {
 	Repo            *objstore.Repository
 	Authentication  *auth.Auth
 	StaticData      packr.Box
+	WikiData        *wikidata.WikiData
 }

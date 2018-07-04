@@ -1,6 +1,7 @@
 package wiki
 
 import (
+	"fmt"
 	"net/http"
 	"path"
 
@@ -45,5 +46,13 @@ func (wiki *Wiki) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("we're ok: " + path))
+	if path == "/refresh" {
+		wiki.config.WikiData.RefreshState()
+		w.Write([]byte("we're very refreshed"))
+		return
+	}
+
+	w.Write([]byte("we're ok: " + path + "\n"))
+	page, ok := wiki.config.WikiData.LookupPage(path)
+	fmt.Fprintf(w, "%#v\n\n%#v\n", ok, page)
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/MerryMage/libellus/common"
 	"github.com/MerryMage/libellus/objstore"
 	"github.com/MerryMage/libellus/wiki"
+	"github.com/MerryMage/libellus/wikidata"
 )
 
 var (
@@ -167,6 +168,7 @@ func main() {
 		Authentication:  auth.NewAuth(*privateDir+"/auth/account.json", *httpOnly),
 		StaticData:      packr.NewBox("./static"),
 	}
+	config.WikiData = wikidata.New(config.Repo, "master")
 	app = wiki.NewWiki(config)
 
 	if *httpOnly {
