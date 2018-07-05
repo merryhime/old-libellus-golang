@@ -176,6 +176,7 @@ func (auth *Auth) login(w http.ResponseWriter, r *http.Request) {
 			Value:   newcookie,
 			Expires: time.Now().Add(14 * 24 * time.Hour),
 			Secure:  !auth.httpOnly,
+			Path:    "/",
 		})
 		http.Redirect(w, r, "/"+r.Form.Get("redirect"), 303)
 
