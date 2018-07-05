@@ -12,11 +12,19 @@ import (
 )
 
 type KnowledgeId string
+type CardId string
 
 type KnowledgeMeta struct {
 	ParentPath string
 	Identifier KnowledgeId
 	TreeOid    objid.Oid
+	Cards      []CardId
+}
+
+type CardMeta struct {
+	ParentParentPath string
+	ParentIdentifier KnowledgeId
+	BlobOid          objid.Oid
 }
 
 type PageInfo struct {
@@ -37,6 +45,7 @@ type WikiData struct {
 	ref  string
 
 	knowledges map[KnowledgeId]KnowledgeMeta
+	cards      map[CardId]CardMeta
 	pages      map[string]Page
 }
 
@@ -62,22 +71,10 @@ func (wd *WikiData) addError(path string, err error) {
 	log.Println(path, "-", err)
 }
 
-func (wd *WikiData) parsePageInfo(currentPath string, currentPage *Page, pageTreeEntry *tree.Entry) {
+func (wd *WikiData) parsePageInfo(currentPage *Page, pageTreeEntry *tree.Entry) {
 	pageTree, err := wd.repo.Tree(pageTreeEntry.Oid)
 	if err != nil {
-		wd.addError(currentPath+"/_page", err)
-		return
-	}
-
-	infoRaw, err := wd.repo.ReadBlobFromTree(pageTree, "_info")
-	if err != nil {
-		wd.addError(currentPath+"/_page/_info", err)
-		return
-	}
-
-	err = json.Unmarshal(infoRaw, &currentPage.PageInfo)
-	if err != nil {
-		wd.addError(currentPath+"/_page/_info", err)
+		wd.addError(currentPage.Path+"/_page", err)
 		return
 	}
 
@@ -90,19 +87,66 @@ func (wd *WikiData) parsePageInfo(currentPath string, currentPage *Page, pageTre
 			kid := KnowledgeId(e.Name)
 			currentPage.ActualKnowledges = append(currentPage.ActualKnowledges, kid)
 
-			wd.knowledges[kid] = KnowledgeMeta{
+			km := KnowledgeMeta{
 				ParentPath: currentPage.Path,
 				Identifier: kid,
 				TreeOid:    e.Oid,
 			}
 
+			if cardsTreeEntry, err := tree.Lookup(wd.repo, e.Oid, "_cards"); err == nil {
+				wd.parseCardInfo(currentPage, &km, cardsTreeEntry)
+			}
+
+			wd.knowledges[kid] = km
+
 			continue
 		}
 
-		wd.addError(currentPath+"/_page/"+e.Name, errors.New("wikidata/parsePageInfo: unexpected loose file"))
+		wd.addError(currentPage.Path+"/_page/"+e.Name, errors.New("wikidata/parsePageInfo: unexpected loose file"))
+	}
+
+	infoRaw, err := wd.repo.ReadBlobFromTree(pageTree, "_info")
+	if err != nil {
+		wd.addError(currentPage.Path+"/_page/_info", err)
+		return
+	}
+
+	err = json.Unmarshal(infoRaw, &currentPage.PageInfo)
+	if err != nil {
+		wd.addError(currentPage.Path+"/_page/_info", err)
+		return
 	}
 
 	currentPage.NoInfo = false
+}
+
+func (wd *WikiData) parseCardInfo(currentPage *Page, km *KnowledgeMeta, cardsTreeEntry *tree.Entry) {
+	cardsTree, err := wd.repo.Tree(cardsTreeEntry.Oid)
+	if err != nil {
+		wd.addError(currentPage.Path+"/_page/"+string(km.Identifier)+"/_cards", err)
+		return
+	}
+
+	for _, e := range cardsTree.Entries {
+		if e.Name[0] == '_' {
+			continue
+		}
+
+		if e.Mode == filemode.Regular {
+			cid := CardId(e.Name)
+			km.Cards = append(km.Cards, cid)
+
+			wd.cards[cid] = CardMeta{
+				ParentParentPath: currentPage.Path,
+				ParentIdentifier: km.Identifier,
+				BlobOid:          e.Oid,
+			}
+
+			continue
+		}
+
+		wd.addError(currentPage.Path+"/_page/"+string(km.Identifier)+"/_cards/"+e.Name, errors.New("wikidata/parseCardInfo: unexpected non-regular entry"))
+	}
 }
 
 func (wd *WikiData) refreshStateHelper(currentPath string, currentTree objid.Oid) {
@@ -117,8 +161,12 @@ func (wd *WikiData) refreshStateHelper(currentPath string, currentTree objid.Oid
 		NoInfo: true,
 	}
 
+	if currentPath == "" {
+		currentPage.Path = "/"
+	}
+
 	if pageTreeEntry := tree.Find("_page"); pageTreeEntry != nil {
-		wd.parsePageInfo(currentPath, currentPage, pageTreeEntry)
+		wd.parsePageInfo(currentPage, pageTreeEntry)
 	}
 
 	for _, e := range tree.Entries {
@@ -138,9 +186,6 @@ func (wd *WikiData) refreshStateHelper(currentPath string, currentTree objid.Oid
 		wd.addError(path, errors.New("wikidata: unexpected loose file"))
 	}
 
-	if currentPath == "" {
-		currentPage.Path = "/"
-	}
 	wd.pages[currentPage.Path] = *currentPage
 }
 
@@ -163,11 +208,19 @@ func (wd *WikiData) LookupKnowledgeMeta(kid KnowledgeId) (KnowledgeMeta, bool) {
 	return k, ok
 }
 
-func (wd *WikiData) LookupKnowledge(kid KnowledgeId) Knowledge {
+func (wd *WikiData) LookupKnowledge(kid KnowledgeId) (KnowledgeMeta, Knowledge) {
 	k, ok := wd.knowledges[kid]
 	if !ok {
-		return NewErrorKnowledge("kid \"" + string(kid) + "\" not found")
+		return KnowledgeMeta{
+			ParentPath: "/_error",
+			Identifier: kid,
+		}, NewErrorKnowledge("kid \"" + string(kid) + "\" not found")
 	}
 
-	return wd.parseKnowledge(k)
+	return k, wd.parseKnowledge(k)
+}
+
+func (wd *WikiData) LookupCardMeta(cid CardId) (CardMeta, bool) {
+	c, ok := wd.cards[cid]
+	return c, ok
 }

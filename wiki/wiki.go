@@ -119,10 +119,10 @@ func (wiki *Wiki) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wiki *Wiki) RenderKnowledge(kid wikidata.KnowledgeId) RenderedKnowledge {
-	k := wiki.config.WikiData.LookupKnowledge(kid)
+	km, k := wiki.config.WikiData.LookupKnowledge(kid)
 
 	var rendered RenderedKnowledge
-	rendered.CardCount = len(k.GetCards())
+	rendered.CardCount = len(km.Cards)
 
 	switch k := k.(type) {
 	case wikidata.ErrorKnowledge:

@@ -11,18 +11,12 @@ const (
 
 type Knowledge interface {
 	knowledgeTag()
-	GetCards() []string
 	GetInfo() KnowledgeInfo
 }
 
 type KnowledgeInfo struct {
 	Identifier KnowledgeId
 	Type       string
-	Cards      []string
-}
-
-func (ki KnowledgeInfo) GetCards() []string {
-	return ki.Cards
 }
 
 type ErrorKnowledge struct {
