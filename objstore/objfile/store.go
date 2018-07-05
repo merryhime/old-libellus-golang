@@ -79,6 +79,13 @@ func (store Store) Store(oid objid.Oid, payload []byte) error {
 		return err
 	}
 
+	err = f.Sync()
+	if err != nil {
+		f.Close()
+		os.Remove(objpath)
+		return err
+	}
+
 	err = f.Close()
 	if err != nil {
 		os.Remove(objpath)
