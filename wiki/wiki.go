@@ -110,15 +110,17 @@ func (wiki *Wiki) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	for _, v := range page.ActualKnowledges {
-		k := wiki.renderKnowledge(wiki.config.WikiData.LookupKnowledge(v))
+	for _, kid := range page.ActualKnowledges {
+		k := wiki.RenderKnowledge(kid)
 		rendered.Knowledges = append(rendered.Knowledges, k)
 	}
 
 	wiki.pageTemplate.Execute(w, rendered)
 }
 
-func (wiki *Wiki) renderKnowledge(k wikidata.Knowledge) RenderedKnowledge {
+func (wiki *Wiki) RenderKnowledge(kid wikidata.KnowledgeId) RenderedKnowledge {
+	k := wiki.config.WikiData.LookupKnowledge(kid)
+
 	var rendered RenderedKnowledge
 	rendered.CardCount = len(k.GetCards())
 
