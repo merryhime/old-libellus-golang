@@ -24,6 +24,7 @@ type KnowledgeMeta struct {
 type CardMeta struct {
 	ParentParentPath string
 	ParentIdentifier KnowledgeId
+	Identifier       CardId
 	BlobOid          objid.Oid
 }
 
@@ -139,6 +140,7 @@ func (wd *WikiData) parseCardInfo(currentPage *Page, km *KnowledgeMeta, cardsTre
 			wd.cards[cid] = CardMeta{
 				ParentParentPath: currentPage.Path,
 				ParentIdentifier: km.Identifier,
+				Identifier:       cid,
 				BlobOid:          e.Oid,
 			}
 
@@ -223,4 +225,8 @@ func (wd *WikiData) LookupKnowledge(kid KnowledgeId) (KnowledgeMeta, Knowledge) 
 func (wd *WikiData) LookupCardMeta(cid CardId) (CardMeta, bool) {
 	c, ok := wd.cards[cid]
 	return c, ok
+}
+
+func (wd *WikiData) LookupCard(cid CardId) (CardMeta, Card) {
+	return wd.parseCard(cid)
 }
