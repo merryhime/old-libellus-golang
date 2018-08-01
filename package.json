@@ -1,0 +1,37 @@
+{
+  "name": "libellus",
+  "version": "0.1.0",
+  "main": "public/electron.js",
+  "homepage": "./",
+  "private": true,
+  "dependencies": {
+    "electron-is-dev": "^0.3.0",
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2",
+    "react-scripts": "1.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "electron-start": "electron .",
+    "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
+    "preelectron-pack": "yarn build",
+    "electron-pack": "CSC_IDENTITY_AUTO_DISCOVERY=false build -c.extraMetadata.main=build/electron.js"
+  },
+  "devDependencies": {
+    "electron": "^2.0.6",
+    "electron-builder": "^20.26.1"
+  },
+  "build": {
+    "appId": "com.merrymage.libellus",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "asserts"
+    }
+  }
+}
